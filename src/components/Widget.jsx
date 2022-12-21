@@ -92,18 +92,13 @@ function Widget() {
 
   const validateWithIndeeAndLogIn = async (jwt) => {
     try {
-      // note: mkII queries are to server directly
       const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
-      // const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
 
       const playerInitialized = await initializePlayer(tokens);
       setPlayerLoaded(playerInitialized);
 
       // note: start of get content
       const content = await getContent(tokens, jwt);
-      // const content = await getContentMkII(tokens, jwt);
-
-      // const content = true;
 
       setAllowed(true);
       setLoading(false);

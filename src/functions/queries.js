@@ -11,9 +11,6 @@ export const validate = async (pin, litJwt) => {
   let tokenRes;
   try {
     tokenRes = await axios.post(`${urlBase}/auth/validate`, stringifiedBody);
-    // tokenRes = await axios.post('https://indee-tv-gating-demo.litprotocol.workers.dev/auth/validate', stringifiedBody);
-    // tokenRes = await axios.post('http://localhost:8787/auth/validate', stringifiedBody);
-    // tokenRes = await axios.post('http://localhost:3000/validate', stringifiedBody);
   } catch (err) {
     console.log('error getting token', err);
     return;
@@ -31,9 +28,6 @@ export const getContent = async (tokens, litJwt) => {
   let videoRes;
   try {
     videoRes = await axios.post(`${urlBase}/meta/get-authorized-content`, stringifiedBody);
-    // videoRes = await axios.post('https://indee-tv-gating-demo.litprotocol.workers.dev/meta/get-authorized-content', stringifiedBody);
-    // videoRes = await axios.post('http://localhost:8787/meta/get-authorized-content', stringifiedBody);
-    // videoRes = await axios.post('http://localhost:3000/get-authorized-content', stringifiedBody);
   } catch (err) {
     console.log('error getting video', err);
     return;
