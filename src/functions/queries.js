@@ -43,7 +43,6 @@ export const getContent = async (tokens, litJwt) => {
 
 // note: not stringified for regular server
 export const validateMkII = async (pin, litJwt) => {
-  console.log('validate - url', url);
   const body = {
     pin,
     litJwt
