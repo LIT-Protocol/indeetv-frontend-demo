@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppContext } from "../context";
 import { useNavigate } from "react-router-dom";
 import DemoNav from "./Nav";
-import { getContent, validate } from "../functions/queries";
+import { getContent, getContentMkII, validate, validateMkII } from "../functions/queries";
 import { getJwt } from "../functions/helpers";
 
 const condition = [
@@ -47,6 +47,10 @@ function Video() {
     try {
       // jwt = await getJwt(authSigHolder);
       jwt = await getJwt(authSig, videoKey, condition);
+      if (!!jwt['errorCode']) {
+        navigate('/not-allowed');
+        return;
+      }
     } catch (err) {
       console.log('error getting jwt', err);
       setError(JSON.stringify(err));
@@ -74,19 +78,17 @@ function Video() {
 
   const validateWithIndeeAndLogIn = async (jwt) => {
     try {
-      console.log('CHECK PROCESS ENV', process.env.REACT_APP_INDEE_TV_PIN)
       // note: mkII queries are to server directly
-      const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
-      // const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
-      console.log('validateWithIndeeAndLogIn - tokens', tokens);
+      // const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
+      const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
 
       const playerInitialized = await initializePlayer(tokens);
       setPlayerLoaded(playerInitialized);
 
       // note: start of get content
-      const content = await getContent(tokens, jwt);
-      // const content = await getContentMkII(tokens, jwt);
-      // const content = true;
+      // const content = await getContent(tokens, jwt);
+      const content = await getContentMkII(tokens, jwt);
+
       setAllowed(true);
       setLoading(false);
       return {

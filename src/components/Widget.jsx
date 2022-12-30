@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { useAppContext } from "../context";
 import LitJsSdk, { verifyJwt } from "lit-js-sdk";
 import './Widget.css';
-import { getContent, validate } from "../functions/queries";
+import { getContent, getContentMkII, validate, validateMkII } from "../functions/queries";
 import { getJwt } from "../functions/helpers";
 
 const condition = [
@@ -68,6 +68,12 @@ function Widget() {
     try {
       // jwt = await getJwt(authSigHolder);
       jwt = await getJwt(authSigHolder, videoKey, condition);
+      console.log('jwt', jwt)
+      if (!!jwt['errorCode']) {
+        setError(jwt['errorCode']);
+        setAllowed(false);
+        return;
+      }
     } catch (err) {
       console.log('error getting jwt', err);
       setError(JSON.stringify(err));
@@ -92,13 +98,17 @@ function Widget() {
 
   const validateWithIndeeAndLogIn = async (jwt) => {
     try {
-      const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
+      // const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
+      const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
 
       const playerInitialized = await initializePlayer(tokens);
       setPlayerLoaded(playerInitialized);
 
       // note: start of get content
-      const content = await getContent(tokens, jwt);
+      // const content = await getContent(tokens, jwt);
+      const content = await getContentMkII(tokens, jwt);
+
+      // const content = true
 
       setAllowed(true);
       setLoading(false);
@@ -138,31 +148,35 @@ function Widget() {
           <Button variant={'outlined'} onClick={() => logInWithLit()}>Log Into Widget Demo</Button>
         ) : (
           <Fragment>
-            <Card sx={{p: 2, width: '850px', height: "550px", backgroundColor: '#eceff1'}}>
-              <Typography sx={{my: 0.5}} variant={'h5'}>You qualify for a video in a widget. Neato</Typography>
-              <CardContent>
-                {loading ? (
-                  <CircularProgress sx={{mt: 22}}/>
-                ) : (
-                  <div>
-                    {allowed ? (
-                      <div>
-                        <iframe className={'center-widget'} id="indee-player" width="800px" height="450px"
-                                allow="encrypted-media" allowFullScreen
-                                referrerPolicy="origin-when-cross-origin" frameBorder="0"></iframe>
-                      </div>
+            {allowed ? (
+              <div>
+                <Card sx={{p: 2, width: '850px', height: "550px", backgroundColor: '#eceff1'}}>
+                  <Typography sx={{my: 0.5}} variant={'h5'}>You qualify for a video in a widget. Neato</Typography>
+                  <CardContent>
+                    {loading ? (
+                      <CircularProgress sx={{mt: 22}}/>
                     ) : (
                       <div>
-                        <Typography sx={{mt: 20, mb: 1}} variant={'h6'}>{error}</Typography>
-                        <Button variant={'outlined'} onClick={() => reset()}>Reset Auth</Button>
+                        <div>
+                          <iframe className={'center-widget'} id="indee-player" width="800px" height="450px"
+                                  allow="encrypted-media" allowFullScreen
+                                  referrerPolicy="origin-when-cross-origin" frameBorder="0"></iframe>
+                        </div>
                       </div>
                     )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            <Typography variant={'body2'} sx={{mt: 2}}>note: there may be a conflict between the player and Material UI.
-              if video doesn't display in component but audio is still present, try toggling fullscreen </Typography>
+                  </CardContent>
+                </Card>
+                <Typography variant={'body2'} sx={{mt: 2}}>note: there may be a conflict between the player and Material
+                  UI.
+                  if video doesn't display in component but audio is still present, try toggling
+                  fullscreen </Typography>
+              </div>
+            ) : (
+              <div>
+                <Typography sx={{mt: 20, mb: 1}} variant={'h6'}>{error}</Typography>
+                <Button variant={'outlined'} onClick={() => reset()}>Reset Auth</Button>
+              </div>
+            )}
           </Fragment>
         )}
       </span>
