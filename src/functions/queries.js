@@ -1,6 +1,10 @@
 import axios from "axios";
 
-const urlBase = !!process.env.REACT_APP_DEV ? 'http://localhost:3000' : 'https://indee-tv-gating-demo.litprotocol.workers.dev';
+// note: for cloudflare worker
+// const urlBase = !!process.env.REACT_APP_DEV ? 'http://localhost:3000' : 'https://indee-tv-gating-demo.litprotocol.workers.dev';
+
+// note: for express server
+const urlBase = !!process.env.REACT_APP_DEV ? 'http://localhost:3000' : 'https://indee-tv-demo-server.herokuapp.com';
 
 export const validate = async (pin, litJwt) => {
   console.log('validate- pin', pin);
