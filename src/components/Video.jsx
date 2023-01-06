@@ -31,7 +31,7 @@ function Video() {
   const [ playerLoaded, setPlayerLoaded ] = useState(false);
   const [ litLoggedIn, setLitLoggedIn ] = useState(false);
   const [ allowed, setAllowed ] = useState(true);
-  const [ error, setError ] = useState('not allowed');
+  const [ errorMessage, setErrorMessage ] = useState('not allowed');
 
   let navigate = useNavigate();
 
@@ -43,24 +43,28 @@ function Video() {
   const validateWithLit = async () => {
     let tokens;
     let content;
-    let jwt;
-    try {
-      // jwt = await getJwt(authSigHolder);
-      jwt = await getJwt(authSig, videoKey, condition);
-      if (!!jwt['errorCode']) {
-        navigate('/not-allowed');
-        return;
-      }
-    } catch (err) {
-      console.log('error getting jwt', err);
-      setError(JSON.stringify(err));
-      setAllowed(false);
-      return;
-    }
+    let jwt = 'lit auth is off';
+    // TODO: turn back on for lit auth
+    // try {
+    //   // jwt = await getJwt(authSigHolder);
+    //   jwt = await getJwt(authSig, videoKey, condition);
+    //   if (!!jwt['errorCode']) {
+    //     navigate('/not-allowed');
+    //     return;
+    //   }
+    // } catch (err) {
+    //   console.log('error getting jwt', err);
+    //   setErrorMessage(JSON.stringify(err));
+    //   setAllowed(false);
+    //   return;
+    // }
 
     if (jwt) {
       // setJwt(jwt);
       const indeeRes = await validateWithIndeeAndLogIn(jwt);
+      if (!indeeRes) {
+        return;
+      }
       tokens = indeeRes.tokens;
       content = indeeRes.content;
       setLitLoggedIn(true);
@@ -97,7 +101,7 @@ function Video() {
       };
 
     } catch (err) {
-      setError(JSON.stringify(err));
+      setErrorMessage(JSON.stringify(err));
       setAllowed(false);
       console.log('Error:', err);
     }

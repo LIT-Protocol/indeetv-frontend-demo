@@ -6,6 +6,7 @@ import LitJsSdk, { verifyJwt } from "lit-js-sdk";
 import './Widget.css';
 import { getContent, getContentMkII, validate, validateMkII } from "../functions/queries";
 import { getJwt } from "../functions/helpers";
+import { throwError } from "lit-js-sdk/src/lib/utils";
 
 const condition = [
   {
@@ -33,12 +34,16 @@ function Widget() {
   const [ loading, setLoading ] = useState(true);
   const [ playerLoaded, setPlayerLoaded ] = useState(false);
   const [ allowed, setAllowed ] = useState(true);
-  const [ error, setError ] = useState('not allowed');
+  const [ errorMessage, setErrorMessage ] = useState('not allowed');
 
   useEffect(() => {
     reset();
     connectToLit();
   }, []);
+
+  useEffect(() => {
+    console.log('!!!!!! -> check error', errorMessage);
+  }, [ errorMessage ])
 
   const connectToLit = async () => {
     let litNodeClient = new LitJsSdk.LitNodeClient({
@@ -49,40 +54,45 @@ function Widget() {
   }
 
   const logInWithLit = async () => {
-    let authSigHolder;
-    try {
-      authSigHolder = await performWithAuthSig();
-      setStoredAuthSig(authSigHolder);
-      await validateWithLit(authSigHolder);
-    } catch (err) {
-      setError(JSON.stringify(err));
-      setAllowed(false);
-
-    }
+    // TODO: turn back on for lit auth
+    let authSigHolder = 'lit auth is off';
+    // try {
+    //   authSigHolder = await performWithAuthSig();
+    setStoredAuthSig(authSigHolder);
+    await validateWithLit(authSigHolder);
+    // } catch (err) {
+    //   setErrorMessage(JSON.stringify(err));
+    //   setAllowed(false);
+    //
+    // }
   }
 
   const validateWithLit = async (authSigHolder) => {
     let tokens;
     let content;
-    let jwt;
-    try {
-      // jwt = await getJwt(authSigHolder);
-      jwt = await getJwt(authSigHolder, videoKey, condition);
-      console.log('jwt', jwt)
-      if (!!jwt['errorCode']) {
-        setError(jwt['errorCode']);
-        setAllowed(false);
-        return;
-      }
-    } catch (err) {
-      console.log('error getting jwt', err);
-      setError(JSON.stringify(err));
-      setAllowed(false);
-      return;
-    }
+    let jwt = 'lit auth is off';
+    // TODO: turn back on for lit auth
+    // try {
+    //   // jwt = await getJwt(authSigHolder);
+    //   jwt = await getJwt(authSigHolder, videoKey, condition);
+    //   console.log('jwt', jwt)
+    //   if (!!jwt['errorCode']) {
+    //     setErrorMessage(jwt['errorCode']);
+    //     setAllowed(false);
+    //     return;
+    //   }
+    // } catch (err) {
+    //   console.log('error getting jwt', err);
+    //   setErrorMessage(JSON.stringify(err));
+    //   setAllowed(false);
+    //   return;
+    // }
     if (jwt) {
       // setJwt(jwt);
       const indeeRes = await validateWithIndeeAndLogIn(jwt);
+      if (!indeeRes) {
+        return;
+      }
       tokens = indeeRes.tokens;
       content = indeeRes.content;
     } else {
@@ -101,6 +111,14 @@ function Widget() {
       // const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
       const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
 
+      console.log('check after tokens', tokens)
+      if (!!tokens['detail']) {
+        console.log('tokens', tokens['detail']);
+        setErrorMessage(tokens['detail']);
+        setAllowed(false);
+        return;
+      }
+
       const playerInitialized = await initializePlayer(tokens);
       setPlayerLoaded(playerInitialized);
 
@@ -118,9 +136,9 @@ function Widget() {
       };
 
     } catch (err) {
-      setError(JSON.stringify(err));
-      setAllowed(false);
       console.log('Error:', err);
+      setErrorMessage(JSON.stringify(err));
+      setAllowed(false);
     }
   }
 
@@ -173,7 +191,7 @@ function Widget() {
               </div>
             ) : (
               <div>
-                <Typography sx={{mt: 20, mb: 1}} variant={'h6'}>{error}</Typography>
+                <Typography sx={{mt: 20, mb: 1}} variant={'h6'}>error getting video - {errorMessage}</Typography>
                 <Button variant={'outlined'} onClick={() => reset()}>Reset Auth</Button>
               </div>
             )}
