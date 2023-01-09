@@ -31,19 +31,15 @@ function Widget() {
   const {performWithAuthSig, clearAuthSig} = useAppContext();
 
   const [ storedAuthSig, setStoredAuthSig ] = useState(null);
-  const [ loading, setLoading ] = useState(true);
   const [ playerLoaded, setPlayerLoaded ] = useState(false);
   const [ allowed, setAllowed ] = useState(true);
   const [ errorMessage, setErrorMessage ] = useState('not allowed');
+  const [ loading, setLoading ] = useState(true)
 
   useEffect(() => {
     reset();
     connectToLit();
   }, []);
-
-  useEffect(() => {
-    console.log('!!!!!! -> check error', errorMessage);
-  }, [ errorMessage ])
 
   const connectToLit = async () => {
     let litNodeClient = new LitJsSdk.LitNodeClient({
@@ -51,9 +47,11 @@ function Widget() {
     });
     await litNodeClient.connect();
     window.litNodeClient = litNodeClient;
+    setLoading(false);
   }
 
   const logInWithLit = async () => {
+    setLoading(true);
     // TODO: turn back on for lit auth
     let authSigHolder = 'lit auth is off';
     // try {
@@ -65,6 +63,7 @@ function Widget() {
     //   setAllowed(false);
     //
     // }
+    setLoading(false);
   }
 
   const validateWithLit = async (authSigHolder) => {
@@ -79,18 +78,21 @@ function Widget() {
     //   if (!!jwt['errorCode']) {
     //     setErrorMessage(jwt['errorCode']);
     //     setAllowed(false);
+    //     setLoading(false);
     //     return;
     //   }
     // } catch (err) {
     //   console.log('error getting jwt', err);
     //   setErrorMessage(JSON.stringify(err));
     //   setAllowed(false);
+    //   setLoading(false);
     //   return;
     // }
     if (jwt) {
       // setJwt(jwt);
       const indeeRes = await validateWithIndeeAndLogIn(jwt);
       if (!indeeRes) {
+        setLoading(false);
         return;
       }
       tokens = indeeRes.tokens;
@@ -100,6 +102,8 @@ function Widget() {
       setLoading(false);
       return;
     }
+
+    setLoading(false);
 
     setTimeout(async () => {
       await initializePlayer(tokens, content[0].videos[0].key);
@@ -116,11 +120,9 @@ function Widget() {
         console.log('tokens', tokens['detail']);
         setErrorMessage(tokens['detail']);
         setAllowed(false);
+        setLoading(false);
         return;
       }
-
-      const playerInitialized = await initializePlayer(tokens);
-      setPlayerLoaded(playerInitialized);
 
       // note: start of get content
       // const content = await getContent(tokens, jwt);
@@ -129,7 +131,6 @@ function Widget() {
       // const content = true
 
       setAllowed(true);
-      setLoading(false);
       return {
         tokens,
         content
@@ -138,16 +139,17 @@ function Widget() {
     } catch (err) {
       console.log('Error:', err);
       setErrorMessage(JSON.stringify(err));
+      setLoading(false);
       setAllowed(false);
     }
   }
 
   const initializePlayer = async (tokens, videoId = '') => {
     console.log('initializing player', tokens);
+    console.log('initializing player videoId', videoId);
     window.initializeIndeePlayer('indee-player', tokens.token, videoId, {
       autoplay: false
     })
-    console.log('player loaded', playerLoaded);
     return true;
   }
 
