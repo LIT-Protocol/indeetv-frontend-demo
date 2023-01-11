@@ -48,7 +48,6 @@ export const validateMkII = async (pin, litJwt) => {
     litJwt
   };
   let tokenRes;
-  console.log('@@@@ ---> check validate body', body);
   try {
     // note: below for server
     // tokenRes = await axios.post('https://indee-tv-gating-demo.litprotocol.workers.dev/validate', body);

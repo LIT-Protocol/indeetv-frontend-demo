@@ -50,9 +50,9 @@ function Home() {
             ) : (
               <div>
                 {/*// TODO: turn back on for lit auth*/}
-                {/*<Button variant={'outlined'} onClick={() => logInWithLit()}>Log Into Routing Demo</Button>*/}
-                <Typography variant={'h5'}>Routing demo is off for now, use the widget demo</Typography>
-                <Button onClick={() => navigate('/widget')}>Go to Widget</Button>
+                <Button variant={'outlined'} onClick={() => logInWithLit()}>Log Into Routing Demo</Button>
+                {/*<Typography variant={'h5'}>Routing demo is off for now, use the widget demo</Typography>*/}
+                {/*<Button onClick={() => navigate('/widget')}>Go to Widget</Button>*/}
               </div>
             )}
           </div>

@@ -2,11 +2,11 @@ import { verifyJwt } from "lit-js-sdk";
 
 export const getJwt = async (authSigHolder, videoKey, condition) => {
   const resourceId = {
-    baseUrl: "https://localhost:3001",
-    path: "/video/" + videoKey,
-    orgId: "",
+    baseUrl: "https://indee-tv-demo.herokuapp.com/",
+    path: "/widget",
+    orgId: "indeeTv",
     role: "",
-    extraData: "",
+    extraData: videoKey,
   };
 
   console.log('immediately before getJwt', authSigHolder);

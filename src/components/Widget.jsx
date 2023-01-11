@@ -11,9 +11,9 @@ import { throwError } from "lit-js-sdk/src/lib/utils";
 const condition = [
   {
     "conditionType": "evmBasic",
-    "contractAddress": "0xA3D109E28589D2AbC15991B57Ce5ca461Ad8e026",
+    "contractAddress": "0xcb191aB460A3f204C97CE2681a7D6721c582c60a",
     "standardContractType": "ERC721",
-    "chain": "polygon",
+    "chain": "goerli",
     "method": "balanceOf",
     "parameters": [
       ":userAddress"
@@ -54,15 +54,15 @@ function Widget() {
     setLoading(true);
     // TODO: turn back on for lit auth
     let authSigHolder = 'lit auth is off';
-    // try {
-    //   authSigHolder = await performWithAuthSig();
-    setStoredAuthSig(authSigHolder);
-    await validateWithLit(authSigHolder);
-    // } catch (err) {
-    //   setErrorMessage(JSON.stringify(err));
-    //   setAllowed(false);
-    //
-    // }
+    try {
+      authSigHolder = await performWithAuthSig();
+      setStoredAuthSig(authSigHolder);
+      await validateWithLit(authSigHolder);
+    } catch (err) {
+      setErrorMessage(JSON.stringify(err));
+      setAllowed(false);
+
+    }
     setLoading(false);
   }
 
@@ -70,24 +70,22 @@ function Widget() {
     let tokens;
     let content;
     let jwt = 'lit auth is off';
-    // TODO: turn back on for lit auth
-    // try {
-    //   // jwt = await getJwt(authSigHolder);
-    //   jwt = await getJwt(authSigHolder, videoKey, condition);
-    //   console.log('jwt', jwt)
-    //   if (!!jwt['errorCode']) {
-    //     setErrorMessage(jwt['errorCode']);
-    //     setAllowed(false);
-    //     setLoading(false);
-    //     return;
-    //   }
-    // } catch (err) {
-    //   console.log('error getting jwt', err);
-    //   setErrorMessage(JSON.stringify(err));
-    //   setAllowed(false);
-    //   setLoading(false);
-    //   return;
-    // }
+    try {
+      jwt = await getJwt(authSigHolder, videoKey, condition);
+      console.log('check jwt', jwt);
+      if (!!jwt['errorCode']) {
+        setErrorMessage(jwt['errorCode']);
+        setAllowed(false);
+        setLoading(false);
+
+      }
+    } catch (err) {
+      console.log('error getting jwt', err);
+      setErrorMessage(JSON.stringify(err));
+      setAllowed(false);
+      setLoading(false);
+
+    }
     if (jwt) {
       // setJwt(jwt);
       const indeeRes = await validateWithIndeeAndLogIn(jwt);
@@ -100,6 +98,7 @@ function Widget() {
     } else {
       setAllowed(false);
       setLoading(false);
+      setErrorMessage('no jwt');
       return;
     }
 
@@ -114,11 +113,10 @@ function Widget() {
     try {
       // const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
       const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
-
-      console.log('check after tokens', tokens)
-      if (!!tokens['detail']) {
+      console.log('tokens', tokens);
+      if (!!tokens['detail'] || tokens === 'Unauthorized') {
         console.log('tokens', tokens['detail']);
-        setErrorMessage(tokens['detail']);
+        setErrorMessage('Unauthorized');
         setAllowed(false);
         setLoading(false);
         return;
@@ -127,8 +125,6 @@ function Widget() {
       // note: start of get content
       // const content = await getContent(tokens, jwt);
       const content = await getContentMkII(tokens, jwt);
-
-      // const content = true
 
       setAllowed(true);
       return {

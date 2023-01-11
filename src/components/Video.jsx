@@ -9,9 +9,9 @@ import { getJwt } from "../functions/helpers";
 const condition = [
   {
     "conditionType": "evmBasic",
-    "contractAddress": "0xA3D109E28589D2AbC15991B57Ce5ca461Ad8e026",
+    "contractAddress": "0xcb191aB460A3f204C97CE2681a7D6721c582c60a",
     "standardContractType": "ERC721",
-    "chain": "polygon",
+    "chain": "goerli",
     "method": "balanceOf",
     "parameters": [
       ":userAddress"
@@ -36,7 +36,6 @@ function Video() {
   let navigate = useNavigate();
 
   useEffect(() => {
-    console.log('eh')
     validateWithLit()
   }, [])
 
@@ -45,22 +44,21 @@ function Video() {
     let content;
     let jwt = 'lit auth is off';
     // TODO: turn back on for lit auth
-    // try {
-    //   // jwt = await getJwt(authSigHolder);
-    //   jwt = await getJwt(authSig, videoKey, condition);
-    //   if (!!jwt['errorCode']) {
-    //     navigate('/not-allowed');
-    //     return;
-    //   }
-    // } catch (err) {
-    //   console.log('error getting jwt', err);
-    //   setErrorMessage(JSON.stringify(err));
-    //   setAllowed(false);
-    //   return;
-    // }
+    try {
+      // jwt = await getJwt(authSigHolder);
+      jwt = await getJwt(authSig, videoKey, condition);
+      if (!!jwt['errorCode']) {
+        navigate('/not-allowed');
+        return;
+      }
+    } catch (err) {
+      console.log('error getting jwt', err);
+      setErrorMessage(JSON.stringify(err));
+      setAllowed(false);
+      return;
+    }
 
     if (jwt) {
-      // setJwt(jwt);
       const indeeRes = await validateWithIndeeAndLogIn(jwt);
       if (!indeeRes) {
         return;
@@ -85,6 +83,14 @@ function Video() {
       // note: mkII queries are to server directly
       // const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
       const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
+
+      if (!!tokens['detail'] || tokens === 'Unauthorized') {
+        console.log('tokens', tokens['detail']);
+        setErrorMessage('Unauthorized');
+        navigate('/not-allowed');
+        setLoading(false);
+        return;
+      }
 
       // note: start of get content
       // const content = await getContent(tokens, jwt);

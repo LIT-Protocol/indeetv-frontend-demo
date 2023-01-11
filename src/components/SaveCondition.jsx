@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useAppContext } from "../context";
 import './SaveCondition.css';
+import { Button } from "@mui/material";
 
 const condition = [
   {
     "conditionType": "evmBasic",
-    "contractAddress": "0xA3D109E28589D2AbC15991B57Ce5ca461Ad8e026",
+    "contractAddress": "0xcb191aB460A3f204C97CE2681a7D6721c582c60a",
     "standardContractType": "ERC721",
-    "chain": "polygon",
+    "chain": "goerli",
     "method": "balanceOf",
     "parameters": [
       ":userAddress"
@@ -47,11 +48,11 @@ function SaveCondition({videoId}) {
 
   const createAndSave = async () => {
     const resourceId = {
-      baseUrl: "https://localhost:3001",
-      path: "/video/" + videoId,
-      orgId: "",
+      baseUrl: "https://indee-tv-demo.herokuapp.com/",
+      path: "/widget",
+      orgId: "indeeTv",
       role: "",
-      extraData: "",
+      extraData: videoId,
     };
 
     const signedTokenObj = {
