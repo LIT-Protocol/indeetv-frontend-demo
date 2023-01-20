@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAppContext } from "../context";
 import { useNavigate } from "react-router-dom";
 import DemoNav from "./Nav";
-import { getContent, getContentMkII, validate, validateMkII } from "../functions/queries";
+import { getContent, validate } from "../functions/queries";
 import { getJwt } from "../functions/helpers";
 
 const condition = [
@@ -45,7 +45,6 @@ function Video() {
     let jwt = 'lit auth is off';
     // TODO: turn back on for lit auth
     try {
-      // jwt = await getJwt(authSigHolder);
       jwt = await getJwt(authSig, videoKey, condition);
       if (!!jwt['errorCode']) {
         navigate('/not-allowed');
@@ -80,9 +79,8 @@ function Video() {
 
   const validateWithIndeeAndLogIn = async (jwt) => {
     try {
-      // note: mkII queries are to server directly
-      // const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
-      const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
+      // note: start of validate
+      const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
 
       if (!!tokens['detail'] || tokens === 'Unauthorized') {
         console.log('tokens', tokens['detail']);
@@ -93,8 +91,7 @@ function Video() {
       }
 
       // note: start of get content
-      // const content = await getContent(tokens, jwt);
-      const content = await getContentMkII(tokens, jwt);
+      const content = await getContent(tokens, jwt);
 
       setAllowed(true);
       setLoading(false);

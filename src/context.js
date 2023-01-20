@@ -9,7 +9,6 @@ export const AppContextProvider = (props) => {
   const {children} = props;
 
   const [ authSig, setAuthSig ] = useState(null);
-  // const [ tokenList, setTokenList ] = useState(null);
   const [ globalError, setGlobalError ] = useState(null);
 
   const performWithAuthSig = async (
@@ -39,20 +38,6 @@ export const AppContextProvider = (props) => {
     return currentAuthSig;
   };
 
-  // useEffect(() => {
-  //   if (!tokenList) {
-  //     const go = async () => {
-  //       try {
-  //         const tokens = await LitJsSdk.getTokenList();
-  //         setTokenList(tokens);
-  //       } catch (err) {
-  //         console.log("Error fetching token list:", err);
-  //       }
-  //     };
-  //     go();
-  //   }
-  // }, []);
-
   const clearAuthSig = () => {
     setAuthSig(null);
   }
@@ -61,7 +46,6 @@ export const AppContextProvider = (props) => {
     <AppContext.Provider
       value={{
         performWithAuthSig,
-        // tokenList,
         setGlobalError,
         globalError,
         authSig,

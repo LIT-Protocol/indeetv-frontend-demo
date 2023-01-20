@@ -2,12 +2,12 @@ import DemoNav from "./Nav";
 import { Button, Card, CardContent, CircularProgress, Typography } from "@mui/material";
 import { Fragment, useEffect, useState } from "react";
 import { useAppContext } from "../context";
-import LitJsSdk, { verifyJwt } from "lit-js-sdk";
+import LitJsSdk from "lit-js-sdk";
 import './Widget.css';
-import { getContent, getContentMkII, validate, validateMkII } from "../functions/queries";
+import { getContent, validate } from "../functions/queries";
 import { getJwt } from "../functions/helpers";
-import { throwError } from "lit-js-sdk/src/lib/utils";
 
+// condition for the IndeeTV NFT
 const condition = [
   {
     "conditionType": "evmBasic",
@@ -25,13 +25,15 @@ const condition = [
   }
 ]
 
+// video key for placeholder IndeeTV video.  it's ok to have here, it's not a secret.
+// this is also returned in the getContent call, but we use it in the resourceId to source
+// the condition on the Lit nodes
 const videoKey = 'vid-01gjfhjnbn2sna1ehtz2j4je0m'
 
 function Widget() {
   const {performWithAuthSig, clearAuthSig} = useAppContext();
 
   const [ storedAuthSig, setStoredAuthSig ] = useState(null);
-  const [ playerLoaded, setPlayerLoaded ] = useState(false);
   const [ allowed, setAllowed ] = useState(true);
   const [ errorMessage, setErrorMessage ] = useState('not allowed');
   const [ loading, setLoading ] = useState(true)
@@ -41,6 +43,7 @@ function Widget() {
     connectToLit();
   }, []);
 
+  // connect to lit network before doing anything else
   const connectToLit = async () => {
     let litNodeClient = new LitJsSdk.LitNodeClient({
       litNetwork: 'jalapeno',
@@ -50,10 +53,10 @@ function Widget() {
     setLoading(false);
   }
 
+  // logs in current wallet and gets authSig
   const logInWithLit = async () => {
     setLoading(true);
-    // TODO: turn back on for lit auth
-    let authSigHolder = 'lit auth is off';
+    let authSigHolder;
     try {
       authSigHolder = await performWithAuthSig();
       setStoredAuthSig(authSigHolder);
@@ -66,13 +69,14 @@ function Widget() {
     setLoading(false);
   }
 
+  // validates whether user is allowed to view content
   const validateWithLit = async (authSigHolder) => {
     let tokens;
     let content;
-    let jwt = 'lit auth is off';
+    let jwt;
     try {
+      // if the user does not qualify, there will be no jwt returned
       jwt = await getJwt(authSigHolder, videoKey, condition);
-      console.log('check jwt', jwt);
       if (!!jwt['errorCode']) {
         setErrorMessage(jwt['errorCode']);
         setAllowed(false);
@@ -80,14 +84,17 @@ function Widget() {
 
       }
     } catch (err) {
+      // reject if user is not qualified
       console.log('error getting jwt', err);
       setErrorMessage(JSON.stringify(err));
       setAllowed(false);
       setLoading(false);
 
     }
+
+    // though the user should be rejected in the condition above if they don't qualify,
+    // check again just to be safe
     if (jwt) {
-      // setJwt(jwt);
       const indeeRes = await validateWithIndeeAndLogIn(jwt);
       if (!indeeRes) {
         setLoading(false);
@@ -104,6 +111,7 @@ function Widget() {
 
     setLoading(false);
 
+    // setTimeout is used to let the IndeeTV player mount before initialization. probably not necessary
     setTimeout(async () => {
       await initializePlayer(tokens, content[0].videos[0].key);
     }, 200)
@@ -111,20 +119,17 @@ function Widget() {
 
   const validateWithIndeeAndLogIn = async (jwt) => {
     try {
-      // const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
-      const tokens = await validateMkII(process.env.REACT_APP_INDEE_TV_PIN, jwt);
-      console.log('tokens', tokens);
+      // start of validate
+      const tokens = await validate(process.env.REACT_APP_INDEE_TV_PIN, jwt);
       if (!!tokens['detail'] || tokens === 'Unauthorized') {
-        console.log('tokens', tokens['detail']);
         setErrorMessage('Unauthorized');
         setAllowed(false);
         setLoading(false);
         return;
       }
 
-      // note: start of get content
-      // const content = await getContent(tokens, jwt);
-      const content = await getContentMkII(tokens, jwt);
+      // start of get content
+      const content = await getContent(tokens, jwt);
 
       setAllowed(true);
       return {
@@ -141,8 +146,6 @@ function Widget() {
   }
 
   const initializePlayer = async (tokens, videoId = '') => {
-    console.log('initializing player', tokens);
-    console.log('initializing player videoId', videoId);
     window.initializeIndeePlayer('indee-player', tokens.token, videoId, {
       autoplay: false
     })
@@ -150,8 +153,9 @@ function Widget() {
   }
 
   const reset = () => {
+    setLoading(false);
+    setAllowed(true);
     setStoredAuthSig(null);
-    setLoading(true);
     localStorage.removeItem('lit-auth-signature');
     clearAuthSig();
   }
@@ -159,7 +163,12 @@ function Widget() {
   return (
     <div className="Home">
       <DemoNav type={'widget'}/>
-      <span className={'Home-header'}>
+      {loading ? (
+        <div className={'loader-widget'}>
+          <CircularProgress sx={{mt: 22}}/>
+        </div>
+      ) : (
+        <span className={'Home-header'}>
         {!storedAuthSig ? (
           <Button variant={'outlined'} onClick={() => logInWithLit()}>Log Into Widget Demo</Button>
         ) : (
@@ -169,17 +178,13 @@ function Widget() {
                 <Card sx={{p: 2, width: '850px', height: "550px", backgroundColor: '#eceff1'}}>
                   <Typography sx={{my: 0.5}} variant={'h5'}>You qualify for a video in a widget. Neato</Typography>
                   <CardContent>
-                    {loading ? (
-                      <CircularProgress sx={{mt: 22}}/>
-                    ) : (
+                    <div>
                       <div>
-                        <div>
-                          <iframe className={'center-widget'} id="indee-player" width="800px" height="450px"
-                                  allow="encrypted-media" allowFullScreen
-                                  referrerPolicy="origin-when-cross-origin" frameBorder="0"></iframe>
-                        </div>
+                        <iframe className={'center-widget'} id="indee-player" width="800px" height="450px"
+                                allow="encrypted-media" allowFullScreen
+                                referrerPolicy="origin-when-cross-origin" frameBorder="0"></iframe>
                       </div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
                 <Typography variant={'body2'} sx={{mt: 2}}>note: there may be a conflict between the player and Material
@@ -196,6 +201,7 @@ function Widget() {
           </Fragment>
         )}
       </span>
+      )}
     </div>
   )
 }

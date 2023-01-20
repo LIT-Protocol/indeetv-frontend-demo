@@ -1,3 +1,10 @@
 .center-widget {
     border: #282c34 1px solid;
 }
+
+.loader-widget {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

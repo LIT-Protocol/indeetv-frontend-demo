@@ -1,6 +1,5 @@
-import { verifyJwt } from "lit-js-sdk";
-
 export const getJwt = async (authSigHolder, videoKey, condition) => {
+  // resourceIds are unique and used to identify the condition
   const resourceId = {
     baseUrl: "https://indee-tv-demo.herokuapp.com/",
     path: "/widget",
@@ -9,7 +8,6 @@ export const getJwt = async (authSigHolder, videoKey, condition) => {
     extraData: videoKey,
   };
 
-  console.log('immediately before getJwt', authSigHolder);
   try {
     const jwt = await window.litNodeClient.getSignedToken({
       unifiedAccessControlConditions: condition,
@@ -18,9 +16,6 @@ export const getJwt = async (authSigHolder, videoKey, condition) => {
       },
       resourceId: resourceId
     });
-    console.log('after jwt', jwt);
-    const verifiedRes = verifyJwt({jwt});
-    console.log('verifiedRes', verifiedRes);
 
     return jwt;
   } catch (err) {
